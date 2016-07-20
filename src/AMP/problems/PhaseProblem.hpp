@@ -18,6 +18,7 @@
 #include "PHAL_Dimension.hpp"
 #include "Albany_ProblemUtils.hpp"
 #include "Albany_StateManager.hpp"
+
 #include "QCAD_MaterialDatabase.hpp"
 
 namespace Albany {
@@ -98,8 +99,8 @@ protected:
 #include "Intrepid2_DefaultCubatureFactory.hpp"
 #include "Shards_CellTopology.hpp"
 #include "Albany_Utils.hpp"
-#include "Albany_BCUtils.hpp"
 #include "Albany_ProblemUtils.hpp"
+#include "Albany_BCUtils.hpp"
 #include "Albany_EvaluatorUtils.hpp"
 #include "Albany_ResponseUtilities.hpp"
 #include "PHAL_SaveStateField.hpp"
@@ -107,7 +108,6 @@ protected:
 #include "RhoCp.hpp"
 #include "Phi.hpp"
 #include "Psi.hpp"
-#include "Local_Porosity.hpp"
 #include "ThermalCond.hpp"
 #include "PhaseSource.hpp"
 #include "LaserSource.hpp"
@@ -373,7 +373,6 @@ Albany::PhaseProblem::constructEvaluators(
 
     //Input
     p->set<string>("Coordinate Name","Coord Vec");
-    p->set<string>("Porosity Name", "Porosity");
     p->set<Teuchos::ParameterList*>("Parameter List", &param_list);
 
     //Output
@@ -382,25 +381,7 @@ Albany::PhaseProblem::constructEvaluators(
     ev = rcp(new AMP::RhoCp<EvalT,AlbanyTraits>(*p,dl_));
     fm0.template registerEvaluator<EvalT>(ev);
   }
-  
-    { // Local_Porosity
-    RCP<ParameterList> p = rcp(new ParameterList("Porosity"));
 
-    Teuchos::ParameterList& param_list =
-      material_db_->getElementBlockSublist(eb_name, "Porosity");    
-
-    //Input
-    p->set<string>("Coordinate Name","Coord Vec");
-    p->set<string>("Psi Name", "Psi");
-    p->set<Teuchos::ParameterList*>("Parameter List", &param_list);
-
-    //Output
-    p->set<string>("Porosity Name", "Porosity");
-
-    ev = rcp(new AMP::Local_Porosity<EvalT,AlbanyTraits>(*p,dl_));
-    fm0.template registerEvaluator<EvalT>(ev);
-  }
-  
   { // Source Function
     RCP<ParameterList> p = rcp(new ParameterList("Source Function"));
 
@@ -430,7 +411,6 @@ Albany::PhaseProblem::constructEvaluators(
     p->set<string>("Coordinate Name","Coord Vec");
     p->set<string>("Time Name","Time");
     p->set<string>("Delta Time Name","Delta Time");
-    p->set<string>("Porosity Name", "Porosity");
     p->set<Teuchos::ParameterList*>("Parameter List", &param_list);
 
     //Output
@@ -494,16 +474,9 @@ Albany::PhaseProblem::constructEvaluators(
     p->set<string>("Laser Source Name","Laser Source");
     p->set<string>("Phi Name","Phi");
     p->set<string>("Psi Name","Psi");
-    p->set<string>("Porosity Name", "Porosity");
     p->set<string>("Energy Rate Name", "Energy Rate");
     p->set<string>("Time Name","Time");
     p->set<string>("Delta Time Name","Delta Time");
-    
-    
-    // take porosity parameter list
-    Teuchos::ParameterList& param_list_porosity =
-      material_db_->getElementBlockSublist(eb_name, "Porosity");
-    p->set<Teuchos::ParameterList*>("Porosity Parameter List", &param_list_porosity);
 
     //Output
     p->set<string>("Residual Name", "Temperature Residual");
